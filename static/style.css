@@ -1,77 +1,126 @@
+/* static/style.css */
+
 body {
-    margin: 0;
-    padding: 0;
-    font-family: Arial, sans-serif;
-    background: linear-gradient(135deg, #a0d8f1, #87cefa);
-  }
-  
-  .header {
-    display: flex;
-    align-items: center;
-    padding: 20px;
-  }
-  
-  .logo {
-    height: 80px;
-  }
-  
-  .container.login-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: calc(100vh - 120px);
-  }
-  
-  .login-form {
-    background: rgba(255, 255, 255, 0.9);
-    padding: 40px;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    width: 320px;
-    text-align: center;
-  }
-  
-  .login-form h2 {
-    margin-bottom: 20px;
-    color: #023d6b;
-  }
-  
-  .form-group {
-    margin-bottom: 15px;
-    text-align: left;
-  }
-  
-  .form-group label {
-    display: block;
-    margin-bottom: 5px;
-    color: #023d6b;
-  }
-  
-  .form-group input {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 14px;
-  }
-  
-  .btn {
-    width: 100%;
-    padding: 12px;
-    border: none;
-    border-radius: 4px;
-    background-color: #023d6b;
-    color: #fff;
-    font-size: 16px;
-    cursor: pointer;
-  }
-  
-  .btn:hover {
-    background-color: #012a4a;
-  }
-  
-  .error {
-    color: red;
-    margin-bottom: 15px;
-    font-size: 14px;
-  }  
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+  background: linear-gradient(135deg, #a0d8f1, #87cefa);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  padding: 20px;
+}
+
+.logo {
+  height: 80px;
+}
+
+/* Container dành cho login */
+.container.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: calc(100vh - 120px);
+}
+
+.login-form {
+  background: rgba(255, 255, 255, 0.9);
+  padding: 40px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  width: 320px;
+  text-align: center;
+}
+
+.login-form h2 {
+  margin-bottom: 20px;
+  color: #023d6b;
+}
+
+.form-group {
+  margin-bottom: 15px;
+  text-align: left;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  color: #023d6b;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.btn {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 4px;
+  background-color: #023d6b;
+  color: #fff;
+  font-size: 16px;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.btn:hover {
+  background-color: #012a4a;
+}
+
+.error {
+  color: red;
+  margin-bottom: 15px;
+  font-size: 14px;
+}
+
+/* Container dành cho dashboard */
+.container {
+  margin: 30px auto;
+  width: 80%;
+  max-width: 800px;
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0px 2px 10px rgba(0,0,0,0.1);
+  text-align: center;
+}
+
+/* Nút chung cho dashboard */
+.btn {
+  display: inline-block;
+  padding: 12px 24px;
+  margin: 10px 5px;
+  border: none;
+  border-radius: 4px;
+  background-color: #023d6b;
+  color: #fff;
+  font-size: 16px;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.btn:hover {
+  background-color: #012a4a;
+}
+
+/* Nút đăng xuất */
+.btn-logout {
+  background-color: #c0392b;
+}
+
+.btn-logout:hover {
+  background-color: #962d22;
+}
+
+/* Tiêu đề dashboard */
+.container h2 {
+  color: #023d6b;
+  margin-bottom: 20px;
+}
