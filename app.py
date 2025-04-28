@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, redirect, url_for
 import requests
 import os
 
@@ -10,9 +10,18 @@ ENTRY_ID = "entry.1800109557"  # Đây là ID đúng để map câu trả lời 
 
 # ======== Giao diện =========
 
-@app.route('/')
+@app.route('/', methods=['GET', 'POST'])
 def login():
-    return render_template('login.html')
+    error = None
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        # TODO: Thêm logic xác thực username/password thật nếu cần
+        if username and password:
+            return redirect(url_for('dashboard'))
+        else:
+            error = "Vui lòng điền đầy đủ tên người dùng và mật khẩu."
+    return render_template('login.html', error=error)
 
 @app.route('/dashboard')
 def dashboard():
@@ -29,14 +38,10 @@ def api_checkin():
     data = request.get_json()
     qr_code = data.get('qr_code')
     if qr_code:
-        payload = {
-            ENTRY_ID: qr_code
-        }
-        headers = {
-            'Content-Type': 'application/x-www-form-urlencoded'
-        }
+        payload = { ENTRY_ID: qr_code }
+        headers = { 'Content-Type': 'application/x-www-form-urlencoded' }
         response = requests.post(FORM_URL, data=payload, headers=headers)
-        if response.status_code in [200, 302]:
+        if response.status_code in (200, 302):
             return jsonify({'message': 'Điểm danh thành công!'})
         else:
             return jsonify({'message': 'Không gửi được form!'}), 500

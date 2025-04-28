@@ -2,14 +2,50 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Đăng nhập</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng nhập - QR Check-In</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <h2>Đăng nhập</h2>
-    <form method="POST">
-        <input type="text" name="username" placeholder="Tên đăng nhập" required><br><br>
-        <input type="password" name="password" placeholder="Mật khẩu" required><br><br>
-        <button type="submit">Đăng nhập</button>
-    </form>
+    <!-- Header với logo góc trái -->
+    <header class="header">
+        <img src="{{ url_for('static', filename='images/logo.jpg') }}" alt="Logo" class="logo">
+    </header>
+
+    <!-- Container form đăng nhập -->
+    <div class="container login-container">
+        <form method="POST" action="{{ url_for('login') }}" class="login-form">
+            <h2>Đăng nhập</h2>
+
+            <!-- Hiện thông báo lỗi nếu có -->
+            {% if error %}
+                <p class="error">{{ error }}</p>
+            {% endif %}
+
+            <div class="form-group">
+                <label for="username">Tên đăng nhập</label>
+                <input
+                    type="text"
+                    id="username"
+                    name="username"
+                    placeholder="Nhập tên đăng nhập"
+                    required
+                >
+            </div>
+
+            <div class="form-group">
+                <label for="password">Mật khẩu</label>
+                <input
+                    type="password"
+                    id="password"
+                    name="password"
+                    placeholder="Nhập mật khẩu"
+                    required
+                >
+            </div>
+
+            <button type="submit" class="btn">Đăng nhập</button>
+        </form>
+    </div>
 </body>
 </html>
