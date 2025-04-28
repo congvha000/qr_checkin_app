@@ -15,8 +15,8 @@ ENTRY_ID = "entry.1800109557"
 def login():
     error = None
     if request.method == 'POST':
-        username = request.form.get('username')
-        password = request.form.get('password')
+        username = request.form.get('admin')
+        password = request.form.get('123456')
         # TODO: Thay bằng logic xác thực thực
         if username and password:
             session['logged_in'] = True
