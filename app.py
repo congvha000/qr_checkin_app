@@ -6,7 +6,7 @@ app = Flask(__name__)
 
 # ======== Google Form Config =========
 FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSfTGpnx3k8DXJ1Xe5Xy913MAo/formResponse"
-ENTRY_ID = "entry.603988197"  # Đây là ID mới đúng
+ENTRY_ID = "entry.1800109557"  # Đây là ID mới đúng
 
 # ======== Giao diện =========
 
