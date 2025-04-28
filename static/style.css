@@ -1,4 +1,4 @@
-/* static/style.css */
+/* ===== CHUNG CHO CẢ LOGIN VÀ DASHBOARD ===== */
 
 body {
   margin: 0;
@@ -17,7 +17,8 @@ body {
   height: 80px;
 }
 
-/* Container dành cho login */
+/* ===== CHO FORM LOGIN ===== */
+
 .container.login-container {
   display: flex;
   justify-content: center;
@@ -58,29 +59,20 @@ body {
   font-size: 14px;
 }
 
-.btn {
+/* Button login full-width */
+.login-form .btn {
   width: 100%;
-  padding: 12px;
-  border: none;
-  border-radius: 4px;
-  background-color: #023d6b;
-  color: #fff;
-  font-size: 16px;
-  cursor: pointer;
-  text-decoration: none;
 }
 
-.btn:hover {
-  background-color: #012a4a;
-}
-
+/* Lỗi hiển thị */
 .error {
   color: red;
   margin-bottom: 15px;
   font-size: 14px;
 }
 
-/* Container dành cho dashboard */
+/* ===== CHO DASHBOARD ===== */
+
 .container {
   margin: 30px auto;
   width: 80%;
@@ -92,7 +84,7 @@ body {
   text-align: center;
 }
 
-/* Nút chung cho dashboard */
+/* Button chung (co gọn, canh giữa nhờ text-align:center của .container) */
 .btn {
   display: inline-block;
   padding: 12px 24px;
@@ -110,7 +102,7 @@ body {
   background-color: #012a4a;
 }
 
-/* Nút đăng xuất */
+/* Button logout */
 .btn-logout {
   background-color: #c0392b;
 }
