@@ -5,9 +5,14 @@ import os
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "change_this_to_a_secret")
 
+# ======== Cấu hình admin account =========
+# Bạn có thể thiết lập ENV ADMIN_USER và ADMIN_PASS trên máy hoặc Render dashboard
+ADMIN_USER = os.environ.get("ADMIN_USER", "admin")
+ADMIN_PASS = os.environ.get("ADMIN_PASS", "123456")
+
 # ======== Google Form Config =========
 FORM_URL = "https://docs.google.com/forms/d/1p7cgQicxFbuZiFmn0s4lCVGWn3x8DXJ1Xe5Xy913MAo/formResponse"
-ENTRY_ID = "entry.1800109557"
+ENTRY_ID  = "entry.1800109557"
 
 # ======== Routes ==========
 
@@ -15,15 +20,16 @@ ENTRY_ID = "entry.1800109557"
 def login():
     error = None
     if request.method == 'POST':
-        username = request.form.get('admin')
-        password = request.form.get('123456')
-        # TODO: Thay bằng logic xác thực thực
-        if username and password:
+        username = request.form.get('username')
+        password = request.form.get('password')
+
+        # So sánh với config
+        if username == ADMIN_USER and password == ADMIN_PASS:
             session['logged_in'] = True
             session['username'] = username
             return redirect(url_for('dashboard'))
         else:
-            error = "Vui lòng điền đầy đủ tên đăng nhập và mật khẩu."
+            error = "Tài khoản hoặc mật khẩu không chính xác"
     return render_template('login.html', error=error)
 
 @app.route('/dashboard')
@@ -47,7 +53,7 @@ def logout():
 
 @app.route('/api/checkin', methods=['POST'])
 def api_checkin():
-    data = request.get_json()
+    data = request.get_json(silent=True) or {}
     qr_code = data.get('qr_code')
     if qr_code:
         payload = { ENTRY_ID: qr_code }
@@ -55,8 +61,7 @@ def api_checkin():
         resp = requests.post(FORM_URL, data=payload, headers=headers)
         if resp.status_code in (200, 302):
             return jsonify({'message': 'Điểm danh thành công!'})
-        else:
-            return jsonify({'message': 'Không gửi được form!'}), 500
+        return jsonify({'message': 'Không gửi được form!'}), 500
     return jsonify({'message': 'QR không hợp lệ!'}), 400
 
 # ======== Run App =========
