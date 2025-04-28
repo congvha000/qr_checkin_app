@@ -5,7 +5,7 @@ import os
 app = Flask(__name__)
 
 # ======== Google Form Config =========
-FORM_URL = "https://docs.google.com/forms/d/1p7cgQicxFbuZiFmn0s4lCVGWn3x8DXJ1Xe5Xy913MAo/viewform?edit_requested=true"
+FORM_URL = "https://docs.google.com/forms/d/1p7cgQicxFbuZiFmn0s4lCVGWn3x8DXJ1Xe5Xy913MAo"
 ENTRY_ID = "entry.1800109557"  # Đây là ID mới đúng
 
 # ======== Giao diện =========
