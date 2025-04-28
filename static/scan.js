@@ -3,7 +3,7 @@
 document.addEventListener("DOMContentLoaded", () => {
     const resultDiv = document.getElementById("scan-result");
     const html5QrCode = new Html5Qrcode("reader");
-    const ENDPOINT = "https://script.google.com/macros/s/AKfycbxwUligBm_KRrM5Ai2SlnclC6HYADD7A6zjOrgWmBDXjaoNTZ4-VtdhXX19wEYQ4tb0-Q/exec";
+    const ENDPOINT = "https://script.google.com/macros/s/AKfycbx4kZXgXTU43ikEt6Z1IyQhId1JGUWHb-5xxGzalE92MyTXk3-9sf1kgH5AkXzYNL4SPg/exec";
   
     function onScanSuccess(decodedText, decodedResult) {
       html5QrCode
