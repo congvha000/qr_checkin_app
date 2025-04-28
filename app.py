@@ -1,82 +1,46 @@
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify
-from flask_sqlalchemy import SQLAlchemy
+import requests
 from datetime import datetime
 
 app = Flask(__name__)
-app.secret_key = 'your_secret_key'  # Đổi thành bí mật riêng nếu bạn muốn
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite3'
-db = SQLAlchemy(app)
 
-# ======== Định nghĩa database model =========
+# ======== Google Form Info =========
+FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSd5X2lsZTn7Us8eniyywiV1C2GQQ9pwVNkbAORar5RsMsI1pw/formResponse"
+ENTRY_ID = "entry.1544505781"  # ID ô QR Code
 
-class User(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(150))
-    password = db.Column(db.String(150))
+# ======== Các route =========
 
-class Checkin(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    qr_code = db.Column(db.String(255))
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
-
-# ======== Tạo database nếu chưa có =========
-
-with app.app_context():
-    db.create_all()
-    if not User.query.filter_by(username="admin").first():
-        admin = User(username="admin", password="123456")  # Tài khoản mặc định
-        db.session.add(admin)
-        db.session.commit()
-
-# ======== Định nghĩa các trang web (route) =========
-
-# Trang login
-@app.route('/', methods=['GET', 'POST'])
+@app.route('/')
 def login():
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        user = User.query.filter_by(username=username, password=password).first()
-        if user:
-            session['user_id'] = user.id
-            return redirect(url_for('dashboard'))
-        else:
-            return "Sai tài khoản hoặc mật khẩu!"
     return render_template('login.html')
 
-# Trang dashboard
 @app.route('/dashboard')
 def dashboard():
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
     return render_template('dashboard.html')
 
-# Trang scan QR
 @app.route('/scan')
 def scan():
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
     return render_template('scan.html')
 
-# API checkin khi quét QR
+# ======== API điểm danh QR =========
+
 @app.route('/api/checkin', methods=['POST'])
 def api_checkin():
     data = request.get_json()
     qr_code = data.get('qr_code')
     if qr_code:
-        new_checkin = Checkin(qr_code=qr_code)
-        db.session.add(new_checkin)
-        db.session.commit()
-        return jsonify({'message': 'Điểm danh thành công!'})
+        payload = {
+            ENTRY_ID: qr_code
+        }
+        headers = {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        }
+        response = requests.post(FORM_URL, data=payload, headers=headers)
+        if response.status_code in [200, 302]:  # Google Form sẽ trả về 200 hoặc 302
+            return jsonify({'message': 'Điểm danh thành công!'})
+        else:
+            return jsonify({'message': 'Không gửi được form!'}), 500
     return jsonify({'message': 'QR không hợp lệ!'}), 400
-
-# Logout
-@app.route('/logout')
-def logout():
-    session.pop('user_id', None)
-    return redirect(url_for('login'))
-
-# ======== Chạy ứng dụng =========
 
 if __name__ == '__main__':
     app.run(debug=True)
