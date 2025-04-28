@@ -2,17 +2,33 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Quét QR Code</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quét QR Code Thiếu Nhi</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 </head>
 <body>
-    <h2>Quét QR Code Thiếu Nhi</h2>
-    
-    <div id="reader" style="width: 300px;"></div>
+    <!-- Header với logo -->
+    <header class="header">
+        <img src="{{ url_for('static', filename='images/logo.jpg') }}" alt="Logo" class="logo">
+    </header>
 
-    <br><br>
-    <a href="{{ url_for('dashboard') }}">🔙 Quay lại Dashboard</a>
+    <div class="container">
+        <h2>Quét QR Code Thiếu Nhi</h2>
 
+        <!-- Khung preview camera -->
+        <div id="reader" style="width:100%; max-width:400px; margin: 20px auto;"></div>
+
+        <!-- Hiển thị kết quả scan -->
+        <div id="scan-result" style="text-align:center; margin-top:20px; font-weight:bold;"></div>
+
+        <!-- Quay lại Dashboard -->
+        <a href="{{ url_for('dashboard') }}" class="btn" style="margin-top:30px;">
+            🔙 Quay lại Dashboard
+        </a>
+    </div>
+
+    <!-- Script xử lý scan -->
     <script src="{{ url_for('static', filename='scan.js') }}"></script>
 </body>
 </html>
