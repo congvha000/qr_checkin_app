@@ -1,34 +1,40 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quét QR Code Thiếu Nhi</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Quét QR Code Thiếu Nhi</title>
+  <!-- favicon và CSS chung -->
+  <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <!-- thư viện quét QR -->
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 </head>
 <body>
-    <!-- Header với logo -->
-    <header class="header">
-        <img src="{{ url_for('static', filename='images/logo.jpg') }}" alt="Logo" class="logo">
-    </header>
+  <!-- Header với logo -->
+  <header class="header">
+    <img src="{{ url_for('static', filename='images/logo.jpg') }}" alt="Logo" class="logo">
+  </header>
 
-    <div class="container">
-        <h2>Quét QR Code Thiếu Nhi</h2>
+  <div class="container">
+    <h2>Quét QR Code Thiếu Nhi</h2>
 
-        <!-- Khung preview camera -->
-        <div id="reader" style="width:100%; max-width:400px; margin: 20px auto;"></div>
+    <!-- KHUNG CAMERA ĐỂ HIỂN THỊ PREVIEW -->
+    <div id="reader" style="width:100%; max-width:400px; margin:20px auto;"></div>
 
-        <!-- Hiển thị kết quả scan -->
-        <div id="scan-result" style="text-align:center; margin-top:20px; font-weight:bold;"></div>
+    <!-- NƠI HIỂN THỊ KẾT QUẢ VÀ NÚT QUÉT TIẾP -->
+    <div id="scan-result" style="text-align:center; margin-top:20px; font-weight:bold;"></div>
+    <button id="rescan-btn" class="btn" style="display:none; margin-top:10px;">
+      🔄 Quét tiếp
+    </button>
 
-        <!-- Quay lại Dashboard -->
-        <a href="{{ url_for('dashboard') }}" class="btn" style="margin-top:30px;">
-            🔙 Quay lại Dashboard
-        </a>
-    </div>
+    <!-- NÚT QUAY LẠI DASHBOARD -->
+    <a href="{{ url_for('dashboard') }}" class="btn" style="margin-top:20px;">
+      🔙 Quay lại Dashboard
+    </a>
+  </div>
 
-    <!-- Script xử lý scan -->
-    <script src="{{ url_for('static', filename='scan.js') }}"></script>
+  <!-- Script xử lý scan -->
+  <script src="{{ url_for('static', filename='scan.js') }}"></script>
 </body>
 </html>
