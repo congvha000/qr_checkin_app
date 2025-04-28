@@ -5,8 +5,8 @@ import os
 app = Flask(__name__)
 
 # ======== Google Form Config =========
-FORM_URL = "https://docs.google.com/forms/d/1p7cgQicxFbuZiFmn0s4lCVGWn3x8DXJ1Xe5Xy913MAo"
-ENTRY_ID = "entry.1800109557"  # Đây là ID mới đúng
+FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSd5X2lsZTn7Us8eniyjwiV1C2GQQ9p_mpressions/formResponse"
+ENTRY_ID = "entry.1800109557"  # Đây là ID đúng để map câu trả lời QR
 
 # ======== Giao diện =========
 
