@@ -4,11 +4,11 @@ import os
 
 app = Flask(__name__)
 
-# ======== Cấu hình Google Form =========
-FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSd5X2lsZTn7Us8eniyywiV1C2GQQ9pwVNkbAORar5RsMsI1pw/formResponse"
-ENTRY_ID = "entry.1544505781"  # ID ô nhập QR Code trong Form
+# ======== Google Form Config =========
+FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSfTGpnx3k8DXJ1Xe5Xy913MAo/formResponse"
+ENTRY_ID = "entry.603988197"  # Đây là ID mới đúng
 
-# ======== Các trang giao diện =========
+# ======== Giao diện =========
 
 @app.route('/')
 def login():
@@ -42,7 +42,7 @@ def api_checkin():
             return jsonify({'message': 'Không gửi được form!'}), 500
     return jsonify({'message': 'QR không hợp lệ!'}), 400
 
-# ======== Chạy server =========
+# ======== Chạy app =========
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
