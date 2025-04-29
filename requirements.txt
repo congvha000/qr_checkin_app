@@ -2,5 +2,3 @@ Flask
 Flask_SQLAlchemy
 gunicorn
 requests
-oauth2client
-gspread
