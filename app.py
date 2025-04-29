@@ -10,7 +10,6 @@ ADMIN_USER = os.environ.get("ADMIN_USER", "admin")
 ADMIN_PASS = os.environ.get("ADMIN_PASS", "123456")
 
 # ======== Apps Script Web App URL =========
-# Đã dán URL bạn cung cấp ở đây:
 APPSCRIPT_URL = "https://script.google.com/macros/s/AKfycbzsUMCWKIhlaVAnN0gONFcwSwaPVi12VGjUhXcIupPSSuVfi-nE-2aSnK_cAVcPPWD2gw/exec"
 
 # ======== Routes ==========
@@ -20,13 +19,11 @@ def login():
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
-
         if username == ADMIN_USER and password == ADMIN_PASS:
             session['logged_in'] = True
-            session['username'] = username
+            session['username']  = username
             return redirect(url_for('dashboard'))
-        else:
-            error = "Tài khoản hoặc mật khẩu không chính xác"
+        error = "Tài khoản hoặc mật khẩu không chính xác"
     return render_template('login.html', error=error)
 
 @app.route('/dashboard')
@@ -49,6 +46,7 @@ def logout():
 # ======== API điểm danh QR (Apps Script) =========
 @app.route('/api/checkin', methods=['POST'])
 def api_checkin():
+    # Kiểm tra đã login chưa
     if not session.get('logged_in'):
         return jsonify({'message': 'Chưa đăng nhập'}), 401
 
@@ -57,7 +55,7 @@ def api_checkin():
     if not qr_code:
         return jsonify({'message': 'QR không hợp lệ!'}), 400
 
-    # Gửi payload JSON tới Apps Script Web App
+    # Gửi lên Apps Script để xử lý cập nhật D/E/F
     resp = requests.post(APPSCRIPT_URL, json={'qr_code': qr_code})
     try:
         result = resp.json()  # { success: bool, message: str }
