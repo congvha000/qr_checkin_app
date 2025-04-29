@@ -43,27 +43,29 @@ def logout():
     session.clear()
     return redirect(url_for('login'))
 
-# ======== API điểm danh QR (Apps Script) =========
+# ======== API điểm danh QR (proxy Apps Script) =========
 @app.route('/api/checkin', methods=['POST'])
 def api_checkin():
-    # Kiểm tra đã login chưa
+    # Kiểm tra đã login
     if not session.get('logged_in'):
-        return jsonify({'message': 'Chưa đăng nhập'}), 401
+        return jsonify({'success': False, 'message': 'Chưa đăng nhập'}), 401
 
     data = request.get_json(silent=True) or {}
     qr_code = data.get('qr_code')
     if not qr_code:
-        return jsonify({'message': 'QR không hợp lệ!'}), 400
+        return jsonify({'success': False, 'message': 'QR không hợp lệ!'}), 400
 
-    # Gửi lên Apps Script để xử lý cập nhật D/E/F
-    resp = requests.post(APPSCRIPT_URL, json={'qr_code': qr_code})
+    # Gửi tới Apps Script để xử lý
     try:
-        result = resp.json()  # { success: bool, message: str }
-    except ValueError:
-        return jsonify({'message': 'Lỗi phản hồi từ Sheets API'}), 502
+        resp = requests.post(APPSCRIPT_URL, json={'qr_code': qr_code})
+        result = resp.json()
+    except Exception:
+        return jsonify({'success': False, 'message': 'Lỗi kết nối Sheets API'}), 502
 
-    status_code = 200 if result.get('success') else 400
-    return jsonify({'message': result.get('message')}), status_code
+    ok = bool(result.get('success'))
+    msg = result.get('message', '')
+    status_code = 200 if ok else 400
+    return jsonify({'success': ok, 'message': msg}), status_code
 
 # ======== Run App =========
 if __name__ == '__main__':

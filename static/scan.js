@@ -1,15 +1,15 @@
 // static/scan.js
 
 document.addEventListener("DOMContentLoaded", () => {
-  const resultDiv = document.getElementById("scan-result");
-  const rescanBtn = document.getElementById("rescan-btn");
-  const html5QrCode = new Html5Qrcode("reader");
+  const resultDiv    = document.getElementById("scan-result");
+  const rescanBtn    = document.getElementById("rescan-btn");
+  const html5QrCode  = new Html5Qrcode("reader");
 
-  // Đã đổi thành URL của Apps Script Web App bạn deploy
-  const ENDPOINT = "https://script.google.com/macros/s/AKfycbxP2E8Dtxm2e5bQHoIUzyV6zgHW55x1ZiSjDA4GtkiScdAHfLbMZRRw8oIGp5XhJDNEqw/exec";
+  // Chuyển ENDPOINT về Flask route
+  const ENDPOINT = "/api/checkin";
 
   function startScanner() {
-    resultDiv.innerText = "";
+    resultDiv.innerText     = "";
     rescanBtn.style.display = "none";
 
     html5QrCode
@@ -20,24 +20,32 @@ document.addEventListener("DOMContentLoaded", () => {
       )
       .catch(err => {
         console.error("Camera không khởi động được:", err);
-        resultDiv.innerText = "Không thể truy cập camera.";
+        resultDiv.innerText     = "Không thể truy cập camera.";
         rescanBtn.style.display = "inline-block";
       });
   }
 
-  async function onScanSuccess(decodedText, decodedResult) {
+  async function onScanSuccess(decodedText) {
+    // dừng camera
     await html5QrCode.stop();
+
     try {
+      console.log("[scan.js] Gửi payload lên Flask:", decodedText);
       const res = await fetch(ENDPOINT, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ qr_code: decodedText })
+        method:      "POST",
+        headers:     { "Content-Type": "application/json" },
+        credentials: "same-origin",           // để giữ session cookie
+        body:        JSON.stringify({ qr_code: decodedText })
       });
+      console.log("[scan.js] Response status:", res.status);
+
       const data = await res.json();
-      if (res.ok && data.success) {
+      console.log("[scan.js] Response JSON:", data);
+
+      if (res.ok) {
         resultDiv.innerText = "✅ " + data.message;
       } else {
-        resultDiv.innerText = "❌ " + (data.message || "Điểm danh thất bại");
+        resultDiv.innerText = "❌ " + data.message;
       }
     } catch (e) {
       console.error("Lỗi khi gọi server:", e);
@@ -47,10 +55,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  rescanBtn.addEventListener("click", () => {
-    startScanner();
-  });
+  rescanBtn.addEventListener("click", startScanner);
 
-  // Khởi động lần đầu
+  // Bắt đầu lần đầu
   startScanner();
 });
