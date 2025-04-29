@@ -6,7 +6,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const html5QrCode = new Html5Qrcode("reader");
 
   // Đã đổi thành URL của Apps Script Web App bạn deploy
-  const ENDPOINT = "https://script.google.com/macros/s/AKfycbzsUMCWKIhlaVAnN0gONFcwSwaPVi12VGjUhXcIupPSSuVfi-nE-2aSnK_cAVcPPWD2gw/exec";
+  const ENDPOINT = "https://script.google.com/macros/s/AKfycbzgQQMPIfK7omPAulJ8aZdCf0o9CxABsJJjn8OaczZnVMnsL6j0WlHH-e7vzQgDklqEKA/exec";
 
   function startScanner() {
     resultDiv.innerText = "";
