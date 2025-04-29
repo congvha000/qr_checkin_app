@@ -1,6 +1,6 @@
 import qrcode
 
-def generate_qr(data: str, filename: str = "1.png"):
+def generate_qr(data: str, filename: str = "4.png"):
     """
     Tạo mã QR từ chuỗi data và lưu vào filename.
     """
@@ -21,4 +21,4 @@ def generate_qr(data: str, filename: str = "1.png"):
 
 # KHỐI NÀY PHẢI CHÍNH XÁC NHƯ DƯỚI
 if __name__ == "__main__":
-    generate_qr("an tôn nguyễn cao phong")
+    generate_qr("4")

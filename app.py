@@ -10,7 +10,7 @@ ADMIN_USER = os.environ.get("ADMIN_USER", "admin")
 ADMIN_PASS = os.environ.get("ADMIN_PASS", "123456")
 
 # ======== Apps Script Web App URL =========
-APPSCRIPT_URL = "https://script.google.com/macros/s/AKfycbxP2E8Dtxm2e5bQHoIUzyV6zgHW55x1ZiSjDA4GtkiScdAHfLbMZRRw8oIGp5XhJDNEqw/exec"
+APPSCRIPT_URL = "https://script.google.com/macros/s/AKfycbyQ1YkbmA8rYeUcI7VBCKvBA7Qq0KYY7PUZlL3xTpp5Kn1Qpso67fYDIS7crjWVUamHtw/exec"
 
 # ======== Routes ==========
 @app.route('/', methods=['GET', 'POST'])
