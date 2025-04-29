@@ -21,10 +21,26 @@
       👉 Điểm danh bằng QR Code
     </a><br>
 
-    <!-- Link đăng xuất (bạn cần định nghĩa route logout trong app.py) -->
+    <!-- Link đăng xuất -->
     <a href="{{ url_for('logout') }}" class="btn btn-logout">
       🚪 Đăng xuất
     </a>
+
+    <!-- ============================ -->
+    <!-- Form điểm danh bằng tay -->
+    <hr style="margin: 30px 0;">
+    <h3>📋 Điểm danh bằng tay</h3>
+    <form action="/manual_checkin" method="POST">
+      <label for="input_value">Nhập STT hoặc Họ và tên:</label><br>
+      <input type="text" name="input_value" id="input_value" required style="margin-top: 8px; padding: 5px; width: 300px;">
+      <br><br>
+      <button type="submit" class="btn">✅ Điểm danh</button>
+    </form>
+
+    <!-- Hiển thị kết quả -->
+    {% if message %}
+      <p style="margin-top: 20px; color: green;"><strong>{{ message }}</strong></p>
+    {% endif %}
   </div>
 
 </body>

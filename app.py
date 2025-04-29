@@ -10,7 +10,7 @@ ADMIN_USER = os.environ.get("ADMIN_USER", "admin")
 ADMIN_PASS = os.environ.get("ADMIN_PASS", "123456")
 
 # ======== Apps Script Web App URL =========
-APPSCRIPT_URL = "https://script.google.com/macros/s/AKfycbyQ1YkbmA8rYeUcI7VBCKvBA7Qq0KYY7PUZlL3xTpp5Kn1Qpso67fYDIS7crjWVUamHtw/exec"
+APPSCRIPT_URL = "https://script.google.com/macros/s/AKfycbxWmZbO7-lVZ_w9pXo85LdbYVz1ZhqAOS8yYImc7APXw3mJ2bciKekMjLFYmggfIPmNbA/exec"
 
 # ======== Routes ==========
 @app.route('/', methods=['GET', 'POST'])
@@ -21,7 +21,7 @@ def login():
         password = request.form.get('password')
         if username == ADMIN_USER and password == ADMIN_PASS:
             session['logged_in'] = True
-            session['username']  = username
+            session['username'] = username
             return redirect(url_for('dashboard'))
         error = "Tài khoản hoặc mật khẩu không chính xác"
     return render_template('login.html', error=error)
@@ -30,7 +30,9 @@ def login():
 def dashboard():
     if not session.get('logged_in'):
         return redirect(url_for('login'))
-    return render_template('dashboard.html', username=session.get('username'))
+    # Cho phép truyền message khi điểm danh bằng tay xong
+    message = request.args.get('message')
+    return render_template('dashboard.html', username=session.get('username'), message=message)
 
 @app.route('/scan')
 def scan():
@@ -43,10 +45,9 @@ def logout():
     session.clear()
     return redirect(url_for('login'))
 
-# ======== API điểm danh QR (proxy Apps Script) =========
+# ======== API điểm danh QR =========
 @app.route('/api/checkin', methods=['POST'])
 def api_checkin():
-    # Kiểm tra đã login
     if not session.get('logged_in'):
         return jsonify({'success': False, 'message': 'Chưa đăng nhập'}), 401
 
@@ -55,7 +56,6 @@ def api_checkin():
     if not qr_code:
         return jsonify({'success': False, 'message': 'QR không hợp lệ!'}), 400
 
-    # Gửi tới Apps Script để xử lý
     try:
         resp = requests.post(APPSCRIPT_URL, json={'qr_code': qr_code})
         result = resp.json()
@@ -66,6 +66,33 @@ def api_checkin():
     msg = result.get('message', '')
     status_code = 200 if ok else 400
     return jsonify({'success': ok, 'message': msg}), status_code
+
+# ======== API điểm danh bằng tay =========
+@app.route('/manual_checkin', methods=['POST'])
+def manual_checkin():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+
+    input_value = request.form.get('input_value')
+    if not input_value:
+        return redirect(url_for('dashboard', message="Vui lòng nhập STT hoặc Tên"))
+
+    try:
+        # Nếu input là số => QR_CODE
+        int(input_value)
+        payload = {'qr_code': input_value}
+    except ValueError:
+        # Nếu input là chữ => NAME
+        payload = {'name': input_value}
+
+    try:
+        resp = requests.post(APPSCRIPT_URL, json=payload)
+        result = resp.json()
+    except Exception:
+        return redirect(url_for('dashboard', message="Lỗi kết nối đến Sheets API"))
+
+    message = result.get('message', 'Đã xử lý xong.')
+    return redirect(url_for('dashboard', message=message))
 
 # ======== Run App =========
 if __name__ == '__main__':
