@@ -5,11 +5,11 @@ import requests
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "change_this_to_a_secret")
 
-# ======== Cấu hình admin account =========
+
 ADMIN_USER = os.environ.get("ADMIN_USER", "admin")
 ADMIN_PASS = os.environ.get("ADMIN_PASS", "123456")
 
-# ======== Apps Script Web App URL =========
+
 APPSCRIPT_URL = "https://script.google.com/macros/s/AKfycbxWmZbO7-lVZ_w9pXo85LdbYVz1ZhqAOS8yYImc7APXw3mJ2bciKekMjLFYmggfIPmNbA/exec"
 
 # ======== Routes ==========
