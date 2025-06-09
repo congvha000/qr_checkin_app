@@ -12,10 +12,16 @@ from firebase_admin import credentials, firestore
 
 
 # ────────────────────────────────────────────────
-# 1. Flask & Firebase init
+# 1.  Flask & Firebase init
 # ────────────────────────────────────────────────
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-cred_path = os.path.join(BASE_DIR, "credentials.json")   # ✔️ luôn đúng dù chạy ở đâu
+# • Render: bạn thêm Secret File tên `credentials.json`
+#           Render sẽ mount tại /etc/secrets/credentials.json
+# • Local  : để credentials.json cạnh app.py
+BASE_DIR  = os.path.dirname(os.path.abspath(__file__))
+cred_path = os.getenv(
+    "GOOGLE_APPLICATION_CREDENTIALS",
+    os.path.join(BASE_DIR, "credentials.json")
+)
 
 app = Flask(__name__, static_folder="static", template_folder="templates")
 app.secret_key = os.environ.get("SECRET_KEY", "change-this-in-prod")
@@ -90,7 +96,13 @@ def scan():          # endpoint = 'scan'
 @app.route("/scan", methods=["POST"])
 @login_required
 def scan_qr():
-    """Xử lý JSON {"qr_code": "..."}"""
+    """
+    Nhận JSON {"qr_code": "..."} rồi:
+      • Chặn quét lặp < 1 giờ
+      • Giới hạn 3 lần/ngày (UTC+7)
+      • Luôn +1 total_days
+      • Cập nhật last_scan_time để Google Sheets hiển thị
+    """
     data = request.get_json(silent=True) or {}
     qr_code = data.get("qr_code")
 
@@ -104,7 +116,7 @@ def scan_qr():
         if not user_doc.exists:
             return jsonify({"status": "error", "message": "Mã QR không tồn tại"}), 404
 
-        # b) Chặn quét lặp trong 1 giờ
+        # b) Chặn quét lặp < 1 giờ
         now = datetime.now(VN_TZ)
         one_hour_ago = now - timedelta(hours=1)
 
@@ -117,9 +129,9 @@ def scan_qr():
         )
         if list(dup_check.stream()):
             return jsonify({"status": "error",
-                            "message": "Đã quét trong vòng 1 giờ trước."}), 403
+                            "message": "Đã quét trong vòng 1 giờ qua."}), 403
 
-        # c) Kiểm tra giới hạn 3 lần/ngày
+        # c) Giới hạn 3 lần/ngày
         user_data = user_doc.to_dict() or {}
         prev_date = user_data.get("last_scan_date")          # YYYY-MM-DD
         today_str = now.strftime("%Y-%m-%d")
