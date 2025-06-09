@@ -12,7 +12,7 @@ from datetime import datetime, timedelta, timezone
 
 from flask import (
     Flask, render_template, request, redirect,
-    url_for, flash, session, jsonify           # ⬅️  thêm jsonify
+    url_for, flash, session, jsonify
 )
 from flask_login import (
     LoginManager, login_required, login_user,
@@ -25,10 +25,8 @@ from firebase_admin import credentials, firestore
 #  🔧  CONFIGURATION
 # ──────────────────────────────────────────────────────────
 APP_TIMEZONE = timezone(timedelta(hours=7))  # Asia/Ho_Chi_Minh
-
-# Tài khoản admin cố định
-ADMIN_USER = os.getenv("ADMIN_USER", "admin")
-ADMIN_PASS = os.getenv("ADMIN_PASS", "123456")
+ADMIN_USER   = os.getenv("ADMIN_USER", "admin")
+ADMIN_PASS   = os.getenv("ADMIN_PASS", "123456")
 
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY", "dev-secret")
@@ -42,12 +40,11 @@ login_manager.login_view = "login"
 # ──────────────────────────────────────────────────────────
 #  🔑  FIREBASE ADMIN & FIRESTORE
 # ──────────────────────────────────────────────────────────
-if not firebase_admin._apps:                                 # tránh double‑init
+if not firebase_admin._apps:
     cred_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS_JSON")
     if not cred_path:
         BASE_DIR = pathlib.Path(__file__).resolve().parent
         cred_path = BASE_DIR / "credentials.json"
-
     cred = credentials.Certificate(str(cred_path))
     firebase_admin.initialize_app(cred)
 
@@ -71,7 +68,6 @@ def load_user(user_id):
 #  🔄  BUSINESS LOGIC
 # ──────────────────────────────────────────────────────────
 def check_and_update(qr_code: str, *, is_manual: bool = False) -> tuple[bool, str]:
-    """Kiểm tra – ghi log – cập nhật thống kê; trả (ok, message)."""
     now = datetime.now(APP_TIMEZONE)
     one_hour_ago = now - timedelta(hours=1)
 
@@ -83,7 +79,7 @@ def check_and_update(qr_code: str, *, is_manual: bool = False) -> tuple[bool, st
 
     user_data = user_doc.to_dict() or {}
 
-    # 2) Trùng lặp <1 h
+    # 2) Trùng lặp <1 h
     dup_q = (
         db.collection("qr_checkins")
           .where("qr_code", "==", qr_code)
@@ -107,7 +103,7 @@ def check_and_update(qr_code: str, *, is_manual: bool = False) -> tuple[bool, st
         "method":    "manual" if is_manual else "scan"
     })
 
-    # 5) Cập nhật user
+    # 5) Cập nhật thống kê user
     updates = {
         "total_days":     firestore.Increment(1),
         "last_scan_time": firestore.SERVER_TIMESTAMP,
@@ -131,17 +127,12 @@ def login():
     if request.method == "POST":
         username = request.form.get("username", "").strip()
         password = request.form.get("password", "").strip()
-
         if username == ADMIN_USER and password == ADMIN_PASS:
             login_user(User(uid=ADMIN_USER, name="Administrator"))
             return redirect(url_for("dashboard"))
-
-        # Sai thông tin
         return render_template("login.html",
                                error="Sai tài khoản hoặc mật khẩu!")
-
     return render_template("login.html")
-
 
 @app.route("/logout")
 @login_required
@@ -150,16 +141,13 @@ def logout():
     return redirect(url_for("login"))
 
 # ──────────────────────────────────────────────────────────
-#  🌐  ROUTES – DASHBOARD
+#  🌐  DASHBOARD + MANUAL CHECK‑IN
 # ──────────────────────────────────────────────────────────
 @app.route("/")
 @login_required
 def dashboard():
     return render_template("dashboard.html")
 
-# ──────────────────────────────────────────────────────────
-#  🌐  MANUAL CHECK‑IN (form + API urlencoded)
-# ──────────────────────────────────────────────────────────
 @app.route("/manual_checkin", methods=["POST"])
 @login_required
 def manual_checkin():
@@ -173,27 +161,23 @@ def manual_checkin():
     return redirect(url_for("dashboard"))
 
 # ──────────────────────────────────────────────────────────
-#  🌐  SCAN PAGES
+#  🌐  SCAN (GET + POST chung)
 # ──────────────────────────────────────────────────────────
-# GET /scan → trang camera quét QR
-@app.route("/scan")
+@app.route("/scan", methods=["GET", "POST"])
 @login_required
 def scan():
+    if request.method == "POST":
+        data = request.get_json(silent=True) or {}
+        qr_code = str(data.get("qr_code", "")).strip()
+
+        if not qr_code.isdigit():
+            return jsonify({"message": "Mã số thẻ phải là số!"}), 400
+
+        ok, msg = check_and_update(qr_code, is_manual=False)
+        return jsonify({"message": msg}), (200 if ok else 400)
+
+    # GET – trả giao diện camera
     return render_template("scan.html")
-
-
-# POST /scan → API JSON {qr_code: "..."} gửi từ scan.js
-@app.route("/scan", methods=["POST"])
-@login_required
-def scan_api():
-    data = request.get_json(silent=True) or {}
-    qr_code = str(data.get("qr_code", "")).strip()
-
-    if not qr_code.isdigit():
-        return jsonify({"message": "Mã số thẻ phải là số!"}), 400
-
-    ok, msg = check_and_update(qr_code, is_manual=False)
-    return jsonify({"message": msg}), (200 if ok else 400)
 
 # ──────────────────────────────────────────────────────────
 #  ⚙️  MAIN
