@@ -12,11 +12,8 @@ from firebase_admin import credentials, firestore
 
 
 # ────────────────────────────────────────────────
-# 1.  Flask & Firebase init
+# 1. Flask & Firebase init
 # ────────────────────────────────────────────────
-# • Render: bạn thêm Secret File tên `credentials.json`
-#           Render sẽ mount tại /etc/secrets/credentials.json
-# • Local  : để credentials.json cạnh app.py
 BASE_DIR  = os.path.dirname(os.path.abspath(__file__))
 cred_path = os.getenv(
     "GOOGLE_APPLICATION_CREDENTIALS",
@@ -45,6 +42,59 @@ def login_required(fn):
             return redirect(url_for("login"))
         return fn(*args, **kwargs)
     return wrapper
+
+
+def check_and_update(qr_code: str, is_manual: bool = False):
+    """
+    Logic chung cho /scan (POST JSON) và /manual_checkin (POST form):
+    - Chặn quét lặp <1h
+    - Giới hạn 3 lần/ngày
+    - Luôn tăng total_days
+    - Cập nhật last_scan_time, scan_count_today
+    Trả về tuple (ok: bool, message: str, status_code: int)
+    """
+    user_ref = db.collection("users").document(qr_code)
+    user_doc = user_ref.get()
+    if not user_doc.exists:
+        return False, "Mã QR không tồn tại.", 404
+
+    now          = datetime.now(VN_TZ)
+    one_hour_ago = now - timedelta(hours=1)
+    today_str    = now.strftime("%Y-%m-%d")
+
+    # Lặp <1h?
+    if list(db.collection("qr_checkins")
+               .where("qr_code", "==", qr_code)
+               .where("timestamp", ">", one_hour_ago)
+               .limit(1)
+               .stream()):
+        return False, "Đã quét trong vòng 1 giờ qua.", 403
+
+    user_data = user_doc.to_dict() or {}
+    if user_data.get("last_scan_date") == today_str and \
+       user_data.get("scan_count_today", 0) >= 3:
+        return False, "Đã quét tối đa 3 lần hôm nay.", 403
+
+    # Ghi log qr_checkins
+    db.collection("qr_checkins").add({
+        "qr_code": qr_code,
+        "timestamp": firestore.SERVER_TIMESTAMP,
+        "method": "manual" if is_manual else "qr"
+    })
+
+    # Cập nhật user
+    updates = {
+        "total_days": firestore.Increment(1),
+        "last_scan_time": firestore.SERVER_TIMESTAMP
+    }
+    if user_data.get("last_scan_date") == today_str:
+        updates["scan_count_today"] = firestore.Increment(1)
+    else:
+        updates["scan_count_today"] = 1
+        updates["last_scan_date"]   = today_str
+
+    user_ref.update(updates)
+    return True, "Điểm danh thành công!", 200
 
 
 # ────────────────────────────────────────────────
@@ -81,7 +131,8 @@ def logout():
 @login_required
 def dashboard():
     return render_template("dashboard.html",
-                           username=session.get("username"))
+                           username=session.get("username"),
+                           message=request.args.get("message"))
 
 
 # ────────────────────────────────────────────────
@@ -96,75 +147,29 @@ def scan():          # endpoint = 'scan'
 @app.route("/scan", methods=["POST"])
 @login_required
 def scan_qr():
-    """
-    Nhận JSON {"qr_code": "..."} rồi:
-      • Chặn quét lặp < 1 giờ
-      • Giới hạn 3 lần/ngày (UTC+7)
-      • Luôn +1 total_days
-      • Cập nhật last_scan_time để Google Sheets hiển thị
-    """
     data = request.get_json(silent=True) or {}
-    qr_code = data.get("qr_code")
+    qr_code = data.get("qr_code", "").strip()
 
     if not qr_code:
         return jsonify({"status": "error", "message": "Thiếu mã QR"}), 400
 
-    try:
-        # a) Tìm user
-        user_ref = db.collection("users").document(qr_code)
-        user_doc = user_ref.get()
-        if not user_doc.exists:
-            return jsonify({"status": "error", "message": "Mã QR không tồn tại"}), 404
+    ok, msg, code = check_and_update(qr_code)
+    status = "ok" if ok else "error"
+    return jsonify({"status": status, "message": msg}), code
 
-        # b) Chặn quét lặp < 1 giờ
-        now = datetime.now(VN_TZ)
-        one_hour_ago = now - timedelta(hours=1)
 
-        dup_check = (
-            db.collection("qr_checkins")
-              .where("qr_code", "==", qr_code)
-              .where("timestamp", ">", one_hour_ago)
-              .order_by("timestamp", direction=firestore.Query.DESCENDING)
-              .limit(1)
-        )
-        if list(dup_check.stream()):
-            return jsonify({"status": "error",
-                            "message": "Đã quét trong vòng 1 giờ qua."}), 403
+# ────────────────────────────────────────────────
+# 5bis. Manual check-in từ form Dashboard
+# ────────────────────────────────────────────────
+@app.route("/manual_checkin", methods=["POST"])
+@login_required
+def manual_checkin():
+    qr_code = request.form.get("input_value", "").strip()
+    if not qr_code:
+        return redirect(url_for("dashboard", message="Thiếu mã QR / mã thẻ."))
 
-        # c) Giới hạn 3 lần/ngày
-        user_data = user_doc.to_dict() or {}
-        prev_date = user_data.get("last_scan_date")          # YYYY-MM-DD
-        today_str = now.strftime("%Y-%m-%d")
-
-        if prev_date == today_str and user_data.get("scan_count_today", 0) >= 3:
-            return jsonify({"status": "error",
-                            "message": "Đã quét tối đa 3 lần hôm nay."}), 403
-
-        # d) Ghi log vào qr_checkins
-        db.collection("qr_checkins").add({
-            "qr_code": qr_code,
-            "timestamp": firestore.SERVER_TIMESTAMP
-        })
-
-        # e) Cập nhật document users
-        updates = {
-            "total_days": firestore.Increment(1),            # ✔️ luôn +1
-            "last_scan_time": firestore.SERVER_TIMESTAMP
-        }
-
-        if prev_date == today_str:
-            updates["scan_count_today"] = firestore.Increment(1)
-        else:
-            updates["scan_count_today"] = 1
-            updates["last_scan_date"]   = today_str
-
-        user_ref.update(updates)
-
-        return jsonify({"status": "ok", "message": "Điểm danh thành công!"}), 200
-
-    except Exception as e:
-        app.logger.exception(e)
-        return jsonify({"status": "error", "message": str(e)}), 500
+    ok, msg, _ = check_and_update(qr_code, is_manual=True)
+    return redirect(url_for("dashboard", message=msg))
 
 
 # ────────────────────────────────────────────────
