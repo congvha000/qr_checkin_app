@@ -1,22 +1,26 @@
 // static/scan.js
+// --------------------------------------------------
+// Quét QR bằng html5-qrcode và gửi mã về server Flask
+// --------------------------------------------------
 
 document.addEventListener("DOMContentLoaded", () => {
-  const resultDiv    = document.getElementById("scan-result");
-  const rescanBtn    = document.getElementById("rescan-btn");
-  const html5QrCode  = new Html5Qrcode("reader");
+  const resultDiv   = document.getElementById("scan-result");
+  const rescanBtn   = document.getElementById("rescan-btn");
+  const html5QrCode = new Html5Qrcode("reader");
 
-  // ✅ Địa chỉ Flask server (nội bộ)
-  const ENDPOINT = "http://127.0.0.1:5000/scan";
+  // ✔️ Endpoint động: luôn dùng cùng origin với trang đang chạy
+  const ENDPOINT = `${window.location.origin}/scan`;
 
+  // --------------------- Khởi động camera ---------------------
   function startScanner() {
     resultDiv.innerText     = "";
     rescanBtn.style.display = "none";
 
     html5QrCode
       .start(
-        { facingMode: "environment" },
-        { fps: 10, qrbox: 250 },
-        onScanSuccess
+        { facingMode: "environment" },   // camera sau
+        { fps: 10, qrbox: 250 },         // tốc độ & khung quét
+        onScanSuccess                    // callback
       )
       .catch(err => {
         console.error("Camera không khởi động được:", err);
@@ -25,20 +29,21 @@ document.addEventListener("DOMContentLoaded", () => {
       });
   }
 
+  // --------------------- Xử lý khi quét thành công ---------------------
   async function onScanSuccess(decodedText) {
-    await html5QrCode.stop(); // Dừng camera sau khi quét
+    await html5QrCode.stop();            // Tạm dừng camera
 
     try {
-      console.log("[scan.js] Gửi mã QR về Flask:", decodedText);
+      console.log("[scan.js] Gửi mã QR:", decodedText);
 
       const res = await fetch(ENDPOINT, {
-        method: "POST",
+        method:  "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ qr_code: decodedText })
+        body:    JSON.stringify({ qr_code: decodedText })
       });
 
       const data = await res.json();
-      console.log("[scan.js] Phản hồi từ Flask:", data);
+      console.log("[scan.js] Phản hồi:", data);
 
       if (res.ok) {
         resultDiv.innerText = "✅ Điểm danh thành công!";
@@ -46,16 +51,17 @@ document.addEventListener("DOMContentLoaded", () => {
         resultDiv.innerText = "❌ " + (data.message || "Có lỗi xảy ra.");
       }
 
-    } catch (e) {
-      console.error("Lỗi kết nối server:", e);
-      resultDiv.innerText = "❌ Không kết nối được đến server.";
+    } catch (err) {
+      console.error("Lỗi kết nối server:", err);
+      resultDiv.innerText = "❌ Không kết nối được tới máy chủ.";
     } finally {
       rescanBtn.style.display = "inline-block";
     }
   }
 
+  // --------------------- Nút quét lại ---------------------
   rescanBtn.addEventListener("click", startScanner);
 
-  // Bắt đầu quét lần đầu
+  // Bắt đầu quét ngay khi trang load
   startScanner();
 });
