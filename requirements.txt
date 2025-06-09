@@ -3,3 +3,5 @@ Flask_SQLAlchemy
 gunicorn
 requests
 firebase-admin
+Flask-Login>=0.6 
+google-cloud-firestore>=2.14

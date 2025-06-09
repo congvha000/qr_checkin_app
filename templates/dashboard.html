@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Dashboard – QR Check-In</title>
+  <title>Dashboard – QR Check‑In</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
@@ -14,7 +14,17 @@
   </header>
 
   <div class="container">
-    <h2>Chào mừng đến với Trang Quản lý!</h2>
+
+    <!-- Thông báo (flash) -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, msg in messages %}
+          <p class="alert {{ category }}">{{ msg }}</p>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <h2>Chào mừng đến với Trang Quản lý!</h2>
 
     <!-- Link đến trang scan -->
     <a href="{{ url_for('scan') }}" class="btn" style="margin-bottom: 10px;">
@@ -30,17 +40,21 @@
     <!-- Form điểm danh bằng tay -->
     <hr style="margin: 30px 0;">
     <h3>📋 Điểm danh bằng tay</h3>
-    <form action="/manual_checkin" method="POST">
-      <label for="input_value">Nhập Mã định danh hoặc Họ và tên:</label><br>
-      <input type="text" name="input_value" id="input_value" required style="margin-top: 8px; padding: 5px; width: 300px;">
+    <form action="{{ url_for('manual_checkin') }}" method="POST">
+      <label for="qr_code">Nhập mã số thẻ:</label><br>
+      <input type="text"
+             name="qr_code"          <!-- 🔔 đổi input_value → qr_code -->
+
+
       <br><br>
       <button type="submit" class="btn">✅ Điểm danh</button>
     </form>
 
-    <!-- Hiển thị kết quả -->
+    <!-- Hiển thị kết quả truyền qua URL (fallback cũ) -->
     {% if message %}
       <p style="margin-top: 20px; color: green;"><strong>{{ message }}</strong></p>
     {% endif %}
+
   </div>
 
 </body>
