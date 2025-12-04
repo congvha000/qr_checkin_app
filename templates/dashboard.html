@@ -5,28 +5,43 @@
 
 <div class="row g-4">
 
-  <!-- Manual Check-in Card -->
+  <!-- Điểm danh thủ công -->
   <div class="col-md-6">
-    <div class="card shadow-sm rounded-4 p-4">
-      <h4 class="fw-bold mb-3">Điểm danh thủ công</h4>
+    <div class="card shadow-sm rounded-4 app-card">
+      <div class="card-body p-4">
+        <h4 class="fw-bold mb-2">Điểm danh thủ công</h4>
+        <p class="manual-desc mb-3">
+          Dùng khi học viên quên thẻ / QR, bạn có thể nhập mã số thẻ trực tiếp.
+        </p>
 
-      <form method="POST" action="{{ url_for('manual_checkin') }}">
-        <label class="form-label fw-semibold">Nhập mã số thẻ</label>
-        <input name="qr_code" type="text" class="form-control form-control-lg mb-3" required>
+        <form method="POST" action="{{ url_for('manual_checkin') }}">
+          <label class="form-label small fw-semibold">Mã số thẻ</label>
+          <input name="qr_code" type="text" class="form-control app-input mb-3" required>
 
-        <button class="btn btn-success w-100 py-2 fw-bold">Xác nhận điểm danh</button>
-      </form>
+          <button class="btn btn-app-primary w-100 py-2 fw-semibold rounded-pill">
+            ✅ Xác nhận điểm danh
+          </button>
+        </form>
+      </div>
     </div>
   </div>
 
-  <!-- Scan QR -->
+  <!-- Tác vụ nhanh -->
   <div class="col-md-6">
-    <div class="card shadow-sm rounded-4 p-4 h-100 d-flex align-items-center justify-content-center text-center">
-      <h4 class="fw-bold mb-3">Scan mã QR</h4>
-      <p class="text-muted mb-3">Sử dụng camera để quét mã nhanh chóng.</p>
-      <a href="{{ url_for('scan') }}" class="btn btn-primary btn-lg px-4">
-        Mở camera quét QR
-      </a>
+    <div class="card shadow-sm rounded-4 app-card h-100">
+      <div class="card-body p-4">
+        <h4 class="fw-bold mb-3">Tác vụ nhanh</h4>
+
+        <ul class="list-unstyled mb-4">
+          <li class="mb-2">• Quét nhanh bằng camera trên điện thoại.</li>
+          <li class="mb-2">• Hạn chế 3 lượt điểm danh / ngày / học viên.</li>
+          <li class="mb-2">• Không cho điểm danh trùng trong vòng 1 giờ.</li>
+        </ul>
+
+        <a href="{{ url_for('scan') }}" class="btn btn-outline-primary rounded-pill px-4 py-2 fw-semibold">
+          📷 Mở trang quét QR
+        </a>
+      </div>
     </div>
   </div>
 

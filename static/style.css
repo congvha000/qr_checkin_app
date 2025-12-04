@@ -1,24 +1,146 @@
-body {
-  background: #f7f7f7;
+/* Font & background toàn site */
+body.app-body {
+  font-family: "Poppins", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: radial-gradient(circle at top left, #3b82f6 0, transparent 55%),
+              radial-gradient(circle at bottom right, #8b5cf6 0, #0f172a 55%);
+  min-height: 100vh;
+  color: #0f172a;
 }
 
-.card {
-  border-radius: 18px !important;
-}
-
-.btn {
-  border-radius: 12px !important;
-}
-
-.alert {
-  border-radius: 12px !important;
+/* Navbar */
+.app-navbar {
+  background: linear-gradient(90deg, #111827, #020617);
+  box-shadow: 0 8px 30px rgba(15, 23, 42, 0.65);
 }
 
 .navbar-brand {
-  font-size: 1.35rem;
+  color: #e5e7eb !important;
 }
 
-.navbar {
-  padding-top: .6rem;
-  padding-bottom: .6rem;
+.brand-logo {
+  height: 32px;
+  width: auto;
+  object-fit: contain;
+}
+
+.brand-logo-lg {
+  height: 40px;
+  width: auto;
+  object-fit: contain;
+}
+
+.brand-title {
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.navbar .nav-link {
+  color: #9ca3af !important;
+  font-weight: 500;
+  margin-left: 0.5rem;
+}
+
+.navbar .nav-link.active,
+.navbar .nav-link:hover {
+  color: #f9fafb !important;
+}
+
+/* Container chính */
+.app-main-container {
+  max-width: 1100px;
+}
+
+/* Hero card trên dashboard */
+.hero-card {
+  background: linear-gradient(135deg, #4f46e5, #06b6d4);
+  color: #fff;
+}
+
+/* Card chung */
+.card.app-card,
+.card.stat-card,
+.card.auth-card {
+  border: none;
+  background: rgba(15, 23, 42, 0.9);
+  color: #e5e7eb;
+  backdrop-filter: blur(12px);
+}
+
+/* Auth (login) card */
+.auth-card {
+  background: rgba(15, 23, 42, 0.92);
+}
+
+/* Stat cards */
+.stat-card {
+  position: relative;
+}
+
+.stat-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #f9fafb;
+  font-size: 1.2rem;
+  margin-bottom: 0.5rem;
+}
+
+.bg-gradient-primary {
+  background: linear-gradient(135deg, #4f46e5, #3b82f6);
+}
+
+.bg-gradient-success {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+}
+
+.bg-gradient-warning {
+  background: linear-gradient(135deg, #eab308, #f97316);
+}
+
+/* Inputs + buttons */
+.app-input {
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  background-color: rgba(15, 23, 42, 0.8);
+  color: #e5e7eb;
+}
+
+.app-input:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 0.15rem rgba(99, 102, 241, 0.35);
+}
+
+.btn-app-primary {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  border: none;
+  color: #fff;
+}
+
+.btn-app-primary:hover {
+  opacity: 0.95;
+}
+
+/* Alert */
+.app-alert {
+  border-radius: 0.75rem;
+}
+
+/* Footer */
+footer {
+  color: #9ca3af;
+}
+/* Mô tả dưới "Điểm danh thủ công" – làm sáng lên */
+.manual-desc {
+  color: #cbd5ff;
+  font-size: 0.9rem;
+  opacity: 0.95;
+}
+
+/* Subtitle trong màn hình login */
+.login-subtitle {
+  color: #e5e7ff;
+  opacity: 0.95;
 }

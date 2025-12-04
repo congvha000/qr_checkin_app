@@ -1,51 +1,134 @@
 {% extends "base.html" %}
-{% block title %}Scan QR{% endblock %}
+{% block title %}Quét mã QR{% endblock %}
 
 {% block extra_head %}
 <script src="https://unpkg.com/html5-qrcode"></script>
 <style>
-#reader { width: 100%; max-width: 400px; margin: auto; }
+    #reader {
+        width: 100%;
+        max-width: 420px;
+        margin: auto;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        background: #000;
+    }
+
+    .scan-container {
+        text-align: center;
+        margin-top: 20px;
+    }
+
+    .scan-subtitle {
+        color: #9aa0b5;
+        font-size: 0.9rem;
+    }
+
+    .action-buttons a {
+        border-radius: 14px;
+        padding: 10px 20px;
+        font-size: 15px;
+        font-weight: 600;
+        margin-top: 16px;
+    }
+
+    .btn-secondary-custom {
+        background: #4e54c8;
+        color: white !important;
+        border: none;
+    }
+
+    .btn-secondary-custom:hover {
+        opacity: .9;
+    }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="text-center mb-3">
-  <h3 class="fw-bold">Quét mã QR</h3>
-  <p class="text-muted">Hướng camera vào mã QR để điểm danh.</p>
+<div class="scan-container">
+    <h2 class="fw-bold mb-1">Quét mã QR</h2>
+    <p class="scan-subtitle mb-3">Camera sau sẽ tự bật để quét, mỗi lần nhận mã sẽ tự gửi và trả kết quả.</p>
+
+    <div id="reader"></div>
+
+    <div id="scan-result" class="mt-3"></div>
+
+    <div class="action-buttons">
+        <a href="{{ url_for('dashboard') }}" class="btn btn-secondary-custom">
+            ⬅ Quay về Dashboard
+        </a>
+    </div>
 </div>
-
-<div id="reader"></div>
-
-<div id="scan-result" class="mt-3"></div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-document.addEventListener("DOMContentLoaded", function () {
+let html5Qr = null;
+let lastQr = null;
+let lastTime = 0;
 
-  function onScanSuccess(qrCodeMessage) {
+function startRearCamera() {
+    html5Qr = new Html5Qrcode("reader");
+
+    var config = {
+        fps: 10,
+        qrbox: { width: 240, height: 240 }
+    };
+
+    html5Qr.start(
+        { facingMode: { exact: "environment" } },  // luôn ưu tiên camera sau
+        config,
+        onScanSuccess
+    ).catch(function (err) {
+        console.log("Không mở được camera sau, thử camera mặc định...", err);
+
+        // fallback cho laptop / thiết bị không có camera sau
+        html5Qr.start(
+            { facingMode: "environment" },
+            config,
+            onScanSuccess
+        );
+    });
+}
+
+function onScanSuccess(qrText) {
+    const now = Date.now();
+
+    // chặn spam: cùng mã trong 3 giây thì bỏ qua
+    if (qrText === lastQr && (now - lastTime) < 3000) {
+        return;
+    }
+    lastQr = qrText;
+    lastTime = now;
+
     document.getElementById("scan-result").innerHTML =
-      `<div class="alert alert-info">Đang xử lý mã: <strong>${qrCodeMessage}</strong>...</div>`;
+        '<div class="alert alert-info app-alert">Đang xử lý mã <b>' + qrText + '</b>...</div>';
 
     fetch("{{ url_for('scan') }}", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ qr_code: qrCodeMessage }),
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ qr_code: qrText })
     })
-    .then(res => res.json().then(data => ({ ok: res.ok, body: data })))
-    .then(r => {
-      if (r.ok) {
+    .then(function(res) {
+        return res.json().then(function(data) {
+            return { ok: res.ok, body: data };
+        });
+    })
+    .then(function(r) {
+        if (r.ok) {
+            document.getElementById("scan-result").innerHTML =
+                '<div class="alert alert-success app-alert">' + r.body.message + '</div>';
+        } else {
+            document.getElementById("scan-result").innerHTML =
+                '<div class="alert alert-danger app-alert">' + r.body.message + '</div>';
+        }
+    })
+    .catch(function(err) {
         document.getElementById("scan-result").innerHTML =
-          `<div class="alert alert-success">${r.body.message}</div>`;
-      } else {
-        document.getElementById("scan-result").innerHTML =
-          `<div class="alert alert-danger">${r.body.message}</div>`;
-      }
+            '<div class="alert alert-danger app-alert">Lỗi kết nối server: ' + err + '</div>';
     });
-  }
+}
 
-  const html5Qr = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 });
-  html5Qr.render(onScanSuccess);
-});
+document.addEventListener("DOMContentLoaded", startRearCamera);
 </script>
 {% endblock %}
