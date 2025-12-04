@@ -4,23 +4,30 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Đăng nhập - QR Check-In</title>
+
+    <!-- CSS riêng của bạn -->
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <!-- Header với logo góc trái -->
+    <!-- Logo -->
     <header class="header">
         <img src="{{ url_for('static', filename='images/logo.jpg') }}" alt="Logo" class="logo">
     </header>
 
-    <!-- Container form đăng nhập -->
     <div class="container login-container">
         <form method="POST" action="{{ url_for('login') }}" class="login-form">
             <h2>Đăng nhập</h2>
 
-            <!-- Hiện thông báo lỗi nếu có -->
-            {% if error %}
-                <p class="error">{{ error }}</p>
-            {% endif %}
+            <!-- 🔔 Chỉ hiển thị flash có category = danger -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+              {% if messages %}
+                {% for category, msg in messages %}
+                  {% if category == 'danger' %}
+                    <p class="alert danger">{{ msg }}</p>
+                  {% endif %}
+                {% endfor %}
+              {% endif %}
+            {% endwith %}
 
             <div class="form-group">
                 <label for="username">Tên đăng nhập</label>
