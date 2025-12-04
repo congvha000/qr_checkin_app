@@ -1,40 +1,51 @@
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-  <title>Quét QR Code Thiếu Nhi</title>
-  <!-- favicon và CSS chung -->
-  <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-  <!-- thư viện quét QR -->
-  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
-</head>
-<body>
-  <!-- Header với logo -->
-  <header class="header">
-    <img src="{{ url_for('static', filename='images/logo.jpg') }}" alt="Logo" class="logo">
-  </header>
+{% extends "base.html" %}
+{% block title %}Scan QR{% endblock %}
 
-  <div class="container">
-    <h2>Quét QR Code Thiếu Nhi</h2>
+{% block extra_head %}
+<script src="https://unpkg.com/html5-qrcode"></script>
+<style>
+#reader { width: 100%; max-width: 400px; margin: auto; }
+</style>
+{% endblock %}
 
-    <!-- KHUNG CAMERA ĐỂ HIỂN THỊ PREVIEW -->
-    <div id="reader" style="width:100%; max-width:400px; margin:20px auto;"></div>
+{% block content %}
+<div class="text-center mb-3">
+  <h3 class="fw-bold">Quét mã QR</h3>
+  <p class="text-muted">Hướng camera vào mã QR để điểm danh.</p>
+</div>
 
-    <!-- NƠI HIỂN THỊ KẾT QUẢ VÀ NÚT QUÉT TIẾP -->
-    <div id="scan-result" style="text-align:center; margin-top:20px; font-weight:bold;"></div>
-    <button id="rescan-btn" class="btn" style="display:none; margin-top:10px;">
-      🔄 Quét tiếp
-    </button>
+<div id="reader"></div>
 
-    <!-- NÚT QUAY LẠI DASHBOARD -->
-    <a href="{{ url_for('dashboard') }}" class="btn" style="margin-top:20px;">
-      🔙 Quay lại Dashboard
-    </a>
-  </div>
+<div id="scan-result" class="mt-3"></div>
+{% endblock %}
 
-  <!-- Script xử lý scan -->
-  <script src="{{ url_for('static', filename='scan.js') }}"></script>
-</body>
-</html>
+{% block extra_js %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+  function onScanSuccess(qrCodeMessage) {
+    document.getElementById("scan-result").innerHTML =
+      `<div class="alert alert-info">Đang xử lý mã: <strong>${qrCodeMessage}</strong>...</div>`;
+
+    fetch("{{ url_for('scan') }}", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ qr_code: qrCodeMessage }),
+    })
+    .then(res => res.json().then(data => ({ ok: res.ok, body: data })))
+    .then(r => {
+      if (r.ok) {
+        document.getElementById("scan-result").innerHTML =
+          `<div class="alert alert-success">${r.body.message}</div>`;
+      } else {
+        document.getElementById("scan-result").innerHTML =
+          `<div class="alert alert-danger">${r.body.message}</div>`;
+      }
+    });
+  }
+
+  const html5Qr = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 });
+  html5Qr.render(onScanSuccess);
+});
+</script>
+{% endblock %}

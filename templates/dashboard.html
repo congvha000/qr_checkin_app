@@ -1,61 +1,35 @@
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Dashboard – QR Check‑In</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
 
-  <!-- Header với logo -->
-  <header class="header">
-    <img src="{{ url_for('static', filename='images/logo.jpg') }}" alt="Logo" class="logo">
-  </header>
+{% block content %}
 
-  <div class="container">
+<div class="row g-4">
 
-    <!-- Thông báo (flash) -->
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        {% for category, msg in messages %}
-          <p class="alert {{ category }}">{{ msg }}</p>
-        {% endfor %}
-      {% endif %}
-    {% endwith %}
+  <!-- Manual Check-in Card -->
+  <div class="col-md-6">
+    <div class="card shadow-sm rounded-4 p-4">
+      <h4 class="fw-bold mb-3">Điểm danh thủ công</h4>
 
-    <h2>Chào mừng đến với Trang Quản lý!</h2>
+      <form method="POST" action="{{ url_for('manual_checkin') }}">
+        <label class="form-label fw-semibold">Nhập mã số thẻ</label>
+        <input name="qr_code" type="text" class="form-control form-control-lg mb-3" required>
 
-    <!-- Link đến trang scan -->
-    <a href="{{ url_for('scan') }}" class="btn" style="margin-bottom: 10px;">
-      👉 Điểm danh bằng QR Code
-    </a><br>
-
-    <!-- Link đăng xuất -->
-    <a href="{{ url_for('logout') }}" class="btn btn-logout">
-      🚪 Đăng xuất
-    </a>
-
-    <!-- ============================ -->
-    <!-- Form điểm danh bằng tay -->
-    <hr style="margin: 30px 0;">
-    <h3>📋 Điểm danh bằng tay</h3>
-    <form action="{{ url_for('manual_checkin') }}" method="POST">
-      <label for="qr_code">Nhập mã số thẻ:</label><br>
-      <input type="text"
-             name="qr_code"          <!-- 🔔 đổi input_value → qr_code -->
-
-
-      <br><br>
-      <button type="submit" class="btn">✅ Điểm danh</button>
-    </form>
-
-    <!-- Hiển thị kết quả truyền qua URL (fallback cũ) -->
-    {% if message %}
-      <p style="margin-top: 20px; color: green;"><strong>{{ message }}</strong></p>
-    {% endif %}
-
+        <button class="btn btn-success w-100 py-2 fw-bold">Xác nhận điểm danh</button>
+      </form>
+    </div>
   </div>
 
-</body>
-</html>
+  <!-- Scan QR -->
+  <div class="col-md-6">
+    <div class="card shadow-sm rounded-4 p-4 h-100 d-flex align-items-center justify-content-center text-center">
+      <h4 class="fw-bold mb-3">Scan mã QR</h4>
+      <p class="text-muted mb-3">Sử dụng camera để quét mã nhanh chóng.</p>
+      <a href="{{ url_for('scan') }}" class="btn btn-primary btn-lg px-4">
+        Mở camera quét QR
+      </a>
+    </div>
+  </div>
+
+</div>
+
+{% endblock %}

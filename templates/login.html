@@ -1,58 +1,30 @@
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Đăng nhập - QR Check-In</title>
+{% extends "base.html" %}
+{% block title %}Đăng nhập{% endblock %}
 
-    <!-- CSS riêng của bạn -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
-    <!-- Logo -->
-    <header class="header">
-        <img src="{{ url_for('static', filename='images/logo.jpg') }}" alt="Logo" class="logo">
-    </header>
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-4">
+    <div class="card shadow-lg p-4 rounded-4 mt-5">
+      <h3 class="text-center mb-3 fw-bold">Đăng nhập</h3>
 
-    <div class="container login-container">
-        <form method="POST" action="{{ url_for('login') }}" class="login-form">
-            <h2>Đăng nhập</h2>
+      {% if error %}
+      <div class="alert alert-danger">{{ error }}</div>
+      {% endif %}
 
-            <!-- 🔔 Chỉ hiển thị flash có category = danger -->
-            {% with messages = get_flashed_messages(with_categories=true) %}
-              {% if messages %}
-                {% for category, msg in messages %}
-                  {% if category == 'danger' %}
-                    <p class="alert danger">{{ msg }}</p>
-                  {% endif %}
-                {% endfor %}
-              {% endif %}
-            {% endwith %}
+      <form method="POST">
+        <div class="mb-3">
+          <label class="form-label">Tài khoản</label>
+          <input type="text" class="form-control" name="username" required autofocus>
+        </div>
 
-            <div class="form-group">
-                <label for="username">Tên đăng nhập</label>
-                <input
-                    type="text"
-                    id="username"
-                    name="username"
-                    placeholder="Nhập tên đăng nhập"
-                    required
-                >
-            </div>
+        <div class="mb-3">
+          <label class="form-label">Mật khẩu</label>
+          <input type="password" class="form-control" name="password" required>
+        </div>
 
-            <div class="form-group">
-                <label for="password">Mật khẩu</label>
-                <input
-                    type="password"
-                    id="password"
-                    name="password"
-                    placeholder="Nhập mật khẩu"
-                    required
-                >
-            </div>
-
-            <button type="submit" class="btn">Đăng nhập</button>
-        </form>
+        <button class="btn btn-primary w-100 py-2">Đăng nhập</button>
+      </form>
     </div>
-</body>
-</html>
+  </div>
+</div>
+{% endblock %}
