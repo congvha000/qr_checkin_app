@@ -178,7 +178,7 @@ def manual_checkin():
     qr_code = request.form.get("qr_code", "").strip()
 
     if not qr_code.isdigit():
-        flash("Mã số thẻ phải là số!", "warning")
+        flash("QR không hợp lệ!", "warning")
         return redirect(url_for("dashboard"))
 
     ok, msg = check_and_update(qr_code, is_manual=True)
@@ -194,7 +194,7 @@ def scan():
         qr_code = str(data.get("qr_code", "")).strip()
 
         if not qr_code.isdigit():
-            return jsonify({"message": "Mã số thẻ phải là số!"}), 400
+            return jsonify({"message": "QR không hợp lệ!"}), 400
 
         ok, msg = check_and_update(qr_code, is_manual=False)
         return jsonify({"message": msg}), 200 if ok else 400

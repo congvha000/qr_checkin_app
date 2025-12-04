@@ -4,10 +4,14 @@
 {% block extra_head %}
 <script src="https://unpkg.com/html5-qrcode"></script>
 <style>
-    #reader {
+    #reader-wrapper {
         width: 100%;
         max-width: 420px;
-        margin: auto;
+        margin: 0 auto;
+    }
+
+    #reader {
+        width: 100%;
         border-radius: 20px;
         overflow: hidden;
         box-shadow: 0 8px 25px rgba(0,0,0,0.15);
@@ -24,22 +28,31 @@
         font-size: 0.9rem;
     }
 
-    .action-buttons a {
-        border-radius: 14px;
-        padding: 10px 20px;
-        font-size: 15px;
-        font-weight: 600;
+    .action-buttons {
         margin-top: 16px;
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        flex-wrap: wrap;
     }
 
     .btn-secondary-custom {
         background: #4e54c8;
         color: white !important;
         border: none;
+        border-radius: 14px;
+        padding: 10px 18px;
+        font-weight: 600;
     }
 
     .btn-secondary-custom:hover {
         opacity: .9;
+    }
+
+    .btn-scan-again {
+        border-radius: 14px;
+        padding: 10px 18px;
+        font-weight: 600;
     }
 </style>
 {% endblock %}
@@ -47,16 +60,27 @@
 {% block content %}
 <div class="scan-container">
     <h2 class="fw-bold mb-1">Quét mã QR</h2>
-    <p class="scan-subtitle mb-3">Camera sau sẽ tự bật để quét, mỗi lần nhận mã sẽ tự gửi và trả kết quả.</p>
+    <p class="scan-subtitle mb-3">
+        Camera sau sẽ tự bật để quét, mỗi lần nhận mã sẽ tạm dừng để hiển thị kết quả.
+    </p>
 
-    <div id="reader"></div>
+    <div id="reader-wrapper" class="mb-3">
+        <div id="reader"></div>
+    </div>
 
-    <div id="scan-result" class="mt-3"></div>
+    <div id="scan-result" class="mt-2"></div>
 
     <div class="action-buttons">
         <a href="{{ url_for('dashboard') }}" class="btn btn-secondary-custom">
             ⬅ Quay về Dashboard
         </a>
+        <button id="btn-scan-again"
+                type="button"
+                class="btn btn-app-primary btn-scan-again"
+                style="display:none;"
+                onclick="startScanner()">
+            🔄 Quét tiếp
+        </button>
     </div>
 </div>
 {% endblock %}
@@ -64,43 +88,66 @@
 {% block extra_js %}
 <script>
 let html5Qr = null;
-let lastQr = null;
-let lastTime = 0;
+let scanning = false;
 
-function startRearCamera() {
-    html5Qr = new Html5Qrcode("reader");
+function startScanner() {
+    if (!html5Qr) {
+        html5Qr = new Html5Qrcode("reader");
+    }
 
-    var config = {
+    // Hiện khung camera, ẩn kết quả & nút quét lại
+    document.getElementById("reader-wrapper").style.display = "block";
+    document.getElementById("scan-result").innerHTML = "";
+    document.getElementById("btn-scan-again").style.display = "none";
+
+    const config = {
         fps: 10,
         qrbox: { width: 240, height: 240 }
     };
 
+    scanning = true;
+
+    // Ưu tiên camera sau
     html5Qr.start(
-        { facingMode: { exact: "environment" } },  // luôn ưu tiên camera sau
+        { facingMode: { exact: "environment" } },
         config,
         onScanSuccess
     ).catch(function (err) {
         console.log("Không mở được camera sau, thử camera mặc định...", err);
 
-        // fallback cho laptop / thiết bị không có camera sau
+        // fallback cho thiết bị không có camera sau
         html5Qr.start(
             { facingMode: "environment" },
             config,
             onScanSuccess
-        );
+        ).catch(function (err2) {
+            scanning = false;
+            document.getElementById("scan-result").innerHTML =
+                '<div class="alert alert-danger app-alert">Không mở được camera: ' + err2 + '</div>';
+        });
     });
 }
 
-function onScanSuccess(qrText) {
-    const now = Date.now();
-
-    // chặn spam: cùng mã trong 3 giây thì bỏ qua
-    if (qrText === lastQr && (now - lastTime) < 3000) {
-        return;
+function stopScanner() {
+    if (html5Qr && scanning) {
+        scanning = false;
+        html5Qr.stop().then(function () {
+            console.log("Camera stopped");
+        }).catch(function (err) {
+            console.log("Lỗi stop camera:", err);
+        });
     }
-    lastQr = qrText;
-    lastTime = now;
+}
 
+function onScanSuccess(qrText) {
+    if (!scanning) return;  // tránh double event
+    scanning = false;
+
+    // Dừng camera & ẩn khung quét
+    stopScanner();
+    document.getElementById("reader-wrapper").style.display = "none";
+
+    // Hiện trạng thái xử lý
     document.getElementById("scan-result").innerHTML =
         '<div class="alert alert-info app-alert">Đang xử lý mã <b>' + qrText + '</b>...</div>';
 
@@ -122,13 +169,16 @@ function onScanSuccess(qrText) {
             document.getElementById("scan-result").innerHTML =
                 '<div class="alert alert-danger app-alert">' + r.body.message + '</div>';
         }
+        // Hiện nút "Quét tiếp" sau khi đã có kết quả
+        document.getElementById("btn-scan-again").style.display = "inline-block";
     })
     .catch(function(err) {
         document.getElementById("scan-result").innerHTML =
             '<div class="alert alert-danger app-alert">Lỗi kết nối server: ' + err + '</div>';
+        document.getElementById("btn-scan-again").style.display = "inline-block";
     });
 }
 
-document.addEventListener("DOMContentLoaded", startRearCamera);
+document.addEventListener("DOMContentLoaded", startScanner);
 </script>
 {% endblock %}
