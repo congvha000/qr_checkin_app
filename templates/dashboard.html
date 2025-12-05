@@ -14,11 +14,15 @@
           Dùng khi các em quên thẻ / QR, bạn có thể nhập mã số thẻ trực tiếp.
         </p>
 
-        <form method="POST" action="{{ url_for('manual_checkin') }}">
+        <!-- 🔧 Form đã thêm ID -->
+        <form id="manual-checkin-form" method="POST" action="{{ url_for('manual_checkin') }}">
           <label class="form-label small fw-semibold">Mã số thẻ</label>
           <input name="qr_code" type="text" class="form-control app-input mb-3" required>
 
-          <button class="btn btn-app-primary w-100 py-2 fw-semibold rounded-pill">
+          <!-- 🔧 Nút submit đã thêm type + ID -->
+          <button id="manual-checkin-btn"
+                  type="submit"
+                  class="btn btn-app-primary w-100 py-2 fw-semibold rounded-pill">
             ✅ Xác nhận điểm danh
           </button>
         </form>
@@ -47,4 +51,30 @@
 
 </div>
 
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+  const form = document.getElementById("manual-checkin-form");
+  if (!form) return;
+
+  const btn = document.getElementById("manual-checkin-btn");
+  if (!btn) return;
+
+  form.addEventListener("submit", function () {
+
+    // Không cho bấm lần 2
+    btn.disabled = true;
+
+    // Hiệu ứng loading Bootstrap
+    btn.innerHTML = `
+      <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+      Đang điểm danh...
+    `;
+  });
+
+});
+</script>
 {% endblock %}
