@@ -42,17 +42,15 @@ login_manager.login_view = "login"
 
 
 # ───────────────────────────────────────────────
-# 🔥 FIREBASE ADMIN (CHUẨN 2025)
+# 🔥 FIREBASE ADMIN
 # ───────────────────────────────────────────────
 def init_firebase():
     """
     Khởi tạo Firebase Admin một lần duy nhất.
-    Không dùng firebase_admin._apps (đã không còn hỗ trợ).
     """
     try:
-        firebase_admin.get_app()      # nếu đã init → OK
+        firebase_admin.get_app()
     except ValueError:
-        # chưa init → tiến hành init
         cred_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS_JSON")
 
         if not cred_path:
@@ -84,11 +82,10 @@ def load_user(user_id):
 
 
 # ───────────────────────────────────────────────
-# 🔄 BUSINESS LOGIC
+# 🔄 BUSINESS LOGIC — ĐÃ TỐI ƯU TỐC ĐỘ
 # ───────────────────────────────────────────────
 def check_and_update(qr_code: str, *, is_manual: bool = False):
     now = datetime.now(APP_TIMEZONE)
-    one_hour_ago = now - timedelta(hours=1)
 
     # 1) User tồn tại?
     user_ref = db.collection("users").document(qr_code)
@@ -98,24 +95,26 @@ def check_and_update(qr_code: str, *, is_manual: bool = False):
 
     user_data = user_doc.to_dict() or {}
 
-    # 2) Kiểm tra trùng <1h
-    dup_q = (
-        db.collection("qr_checkins")
-        .where("qr_code", "==", qr_code)
-        .where("timestamp", ">", one_hour_ago)
-        .order_by("timestamp")
-        .limit(1)
-    )
-    if list(dup_q.stream()):
-        return False, "Đã điểm danh trong 1 giờ qua!"
+    # 2) Kiểm tra trùng 1 giờ dựa trên last_scan_time (KHÔNG QUERY FIRESTORE)
+    last_scan_time = user_data.get("last_scan_time")
+    if isinstance(last_scan_time, datetime):
+        # Nếu timestamp không có tz, coi như UTC
+        if last_scan_time.tzinfo is None:
+            last_scan_time = last_scan_time.replace(tzinfo=timezone.utc)
 
-    # 3) Mỗi ngày tối đa 3 lần
+        diff_seconds = (now - last_scan_time.astimezone(APP_TIMEZONE)).total_seconds()
+        if diff_seconds < 3600:
+            return False, "Đã điểm danh trong 1 giờ qua!"
+
+    # 3) Giới hạn 3 lần/ngày
     today = now.strftime("%Y-%m-%d")
-    if (user_data.get("last_scan_date") == today and
-            user_data.get("scan_count_today", 0) >= 3):
+    if (
+        user_data.get("last_scan_date") == today
+        and user_data.get("scan_count_today", 0) >= 3
+    ):
         return False, "Đã vượt quá 3 lần trong ngày!"
 
-    # 4) Lưu log
+    # 4) Ghi log checkin
     db.collection("qr_checkins").add({
         "qr_code": qr_code,
         "timestamp": firestore.SERVER_TIMESTAMP,
@@ -206,5 +205,5 @@ def scan():
 # MAIN
 # ───────────────────────────────────────────────
 if __name__ == "__main__":
-    debug_mode = bool(int(os.getenv("FLASK_DEBUG", "1")))
-    app.run(host="0.0.0.0", port=5000, debug=debug_mode)
+    port = int(os.getenv("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, debug=False)
